@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { hightlightsSlides } from '../constant'
 import { pauseImg, playImg, replayImg } from '../constant/utils';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+
+gsap.registerPlugin(ScrollTrigger);
+
 const VideoCarousel = () => {
-    const videoRef = useRef([
-    ]);
+    const videoRef = useRef([])
+    const [loadedData, setloadedData] = useState([])
     const videoRefSpanRef = useRef([]);
     const videoDivRef = useRef([]);
 
@@ -15,37 +19,33 @@ const VideoCarousel = () => {
         videoid: 0,
         isLastVideo: false,
         isPlaying: false
-    }
-    )
-
-    
-    const { isEnd, startPlay, videoid, isLastVideo, isPlaying } = video;
-
-    const [loadedData, setloadedData] = useState([])
-
-    useGSAP(()=>{
-        gsap.to('#video',{
-            scrollTrigger:{
-                trigger:'#video',
-                toggleActions:'resart none none none'
-            },
-            onComplete:()=>{{
-                setVideo((prev=>({
-                    ...prev,
-                    startPlay:true,
-                    isPlaying:true
-                })))
-            }}
-        })
-
     })
 
-    useEffect(() => {
-        console.log(videoRef.current);
-    }, [videoid]);
+
+    const { isEnd, startPlay, videoid, isLastVideo, isPlaying } = video;
+
+
+    useGSAP(() => {
+        gsap.to('#video', {
+            scrollTrigger: {
+                trigger: '#video',
+                toggleActions: 'restart none none none'
+            },
+            onComplete: () => {
+                {
+                    setVideo((prev => ({
+                        ...prev,
+                        startPlay: true,
+                        isPlaying: true
+                    })))
+                }
+            }
+        })
+
+    },[])
 
     useEffect(() => {
-        if (loadedData.length > 3) {
+        if (loadedData.length >= 3) {
             if (!isPlaying) {
                 videoRef.current[videoid].pause()
             } else {
@@ -54,7 +54,10 @@ const VideoCarousel = () => {
         }
 
 
-    }, [startPlay, videoid, isPlaying, loadedData])
+    }, [startPlay, videoid, isPlaying, loadedData]);
+
+
+    const handleMetaData = (i, e) => setloadedData((prev) => [...prev, e])
 
     useEffect(() => {
         const currentProgress = 0;
@@ -62,29 +65,37 @@ const VideoCarousel = () => {
     }, [videoid, startPlay])
 
 
-    const handleProccess = (type,i)=>{
-        switch(type){
+    const handleProccess = (type, i) => {
+        switch (type) {
             case 'video-end':
-                setVideo((pre)=> ({...pre,isEnd:true,videoid:i+1}))
+                setVideo((pre) => ({ ...pre, isEnd: true, videoid: i + 1 }))
                 break;
 
-            case'video-last':
-                setVideo((pre)=> ({...pre,isLastVideo:true}))
+            case 'video-last':
+                setVideo((pre) => ({ ...pre, isLastVideo: true }))
                 break;
 
             case 'video-reset':
-                setVideo((pre)=> ({...pre,isLastVideo:false,
-                    videoid:0
+                setVideo((pre) => ({
+                    ...pre, isLastVideo: false,
+                    videoid: 0
                 }))
                 break;
             case 'play':
-                setVideo((prev)=> ({...prev,isPlaying:!prev.isPlaying
-                    
+                setVideo((prev) => ({
+                    ...prev, isPlaying: !prev.isPlaying
+
                 }))
                 break
+            case 'pause':
+                setVideo((prev) => ({
+                    ...prev, isPlaying: false
+                }))
+                break
+                
 
-             default:   
-             
+            default:
+
         }
 
     }
@@ -98,6 +109,7 @@ const VideoCarousel = () => {
                         <div className='video-carousel_container'>
                             <div className='w-full h-full flex-center rounded-3xl overflow-hidden bg-black'>
                                 <video id='video'
+
                                     playsInline={true}
                                     muted
                                     preload='auto'
@@ -107,8 +119,9 @@ const VideoCarousel = () => {
                                             ...prevVideo, isPlaying: true
                                         }))
                                     }}
+                                    onLoadedMetadata={(e) => handleMetaData(i, e)}
                                 >
-                                    <source src={list.video} type='video' />
+                                    <source src={list.video} type='video/mp4' />
                                 </video>
 
 
@@ -136,21 +149,21 @@ const VideoCarousel = () => {
                             <span className='absolute h-full w-full 
                             rounded-full 
                             '
-                            ref={(el)=>(videoDivRef.current[i]=el)}
+                                ref={(el) => (videoRefSpanRef.current[i] = el)}
                             ></span>
 
                         </span>
                     ))}
                 </div>
                 <button className='control-btn'>
-                    <img src={isLastVideo ? replayImg :!isPlaying ? playImg : pauseImg} 
-                    alt={isLastVideo ? 'replay':'pause' }
-                    onClick={isLastVideo ? ()=> handleProccess('video-reset')
-                        :!isPlaying
-                        ?()=>handleProccess('play')
-                        :
-                        ()=>handleProccess('pause')
-                    }
+                    <img src={isLastVideo ? replayImg : !isPlaying ? playImg : pauseImg}
+                        alt={isLastVideo ? 'replay' : 'pause'}
+                        onClick={isLastVideo ? () => handleProccess('video-reset')
+                            : !isPlaying
+                                ? () => handleProccess('play')
+                                :
+                                () => handleProccess('pause')
+                        }
                     />
 
                 </button>
