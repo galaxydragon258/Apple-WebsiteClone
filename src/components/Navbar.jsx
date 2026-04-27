@@ -7,7 +7,7 @@ const Navbar = () => {
                 <img
                     src="/assets/images/apple.svg"
                     alt="Apple"
-                    className="w-6 h-6 object-contain"
+                    className="w-6 h-6 "
                 />
                 <div className="hidden sm:flex gap-8 text-sm text-gray-400">
                     {navLists.map((nav, i) => (

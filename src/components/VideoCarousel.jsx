@@ -13,6 +13,9 @@ const VideoCarousel = () => {
     const videoRefSpanRef = useRef([]);
     const videoDivRef = useRef([]);
 
+    const [videoProgress, setVideoProgress] = useState([])
+
+
     const [video, setVideo] = useState({
         isEnd: false,
         startPlay: true,
@@ -21,11 +24,16 @@ const VideoCarousel = () => {
         isPlaying: false
     })
 
-
     const { isEnd, startPlay, videoid, isLastVideo, isPlaying } = video;
 
-
     useGSAP(() => {
+
+        gsap.to('#slider',{
+            transform: `translateX(${-100 * videoid}%)`,
+            duration:2,
+            ease:'power2.inOut'
+        })
+
         gsap.to('#video', {
             scrollTrigger: {
                 trigger: '#video',
@@ -42,7 +50,7 @@ const VideoCarousel = () => {
             }
         })
 
-    },[])
+    }, [videoid])
 
     useEffect(() => {
         if (loadedData.length >= 3) {
@@ -52,18 +60,55 @@ const VideoCarousel = () => {
                 startPlay && videoRef.current[videoid].play()
             }
         }
-
-
     }, [startPlay, videoid, isPlaying, loadedData]);
 
 
     const handleMetaData = (i, e) => setloadedData((prev) => [...prev, e])
 
     useEffect(() => {
-        const currentProgress = 0;
-        let span = videoRefSpanRef.current[videoid];
-    }, [videoid, startPlay])
+        let span = videoDivRef.current[videoid];
 
+        if (span) {
+            
+            console.log(span)
+            let currentProgress = 0;
+            const progresBar = videoRefSpanRef.current[videoid]
+            let anim = gsap.to(span, {
+                onUpdate: () => {
+                    const progress = Math.ceil(anim.progress() * 100);
+
+                    if (progress !== currentProgress) {
+                        currentProgress = progress
+
+                        setVideoProgress(currentProgress)
+
+                        gsap.to(videoDivRef.current[videoid], {
+                            width: window.innerWidth < 760 ?
+                                '10vw' :
+                                window.innerWidth < 1200 ?
+                                    '10vh'
+                                    :
+                                    '10vh',
+                            duration: 0.5,
+                            ease: 'power1.inOut',
+                        })
+
+                        gsap.to(videoRefSpanRef.current[videoid],{
+                            width: `${currentProgress}%`,
+                            backgroundColor:'white',
+                            duration:5
+                        })
+
+                        
+
+                    }
+                },
+                
+            })
+        }
+
+
+    }, [videoid, startPlay, isPlaying])
 
     const handleProccess = (type, i) => {
         switch (type) {
@@ -84,7 +129,6 @@ const VideoCarousel = () => {
             case 'play':
                 setVideo((prev) => ({
                     ...prev, isPlaying: !prev.isPlaying
-
                 }))
                 break
             case 'pause':
@@ -92,12 +136,8 @@ const VideoCarousel = () => {
                     ...prev, isPlaying: false
                 }))
                 break
-                
-
             default:
-
         }
-
     }
     return (
         <>
@@ -117,12 +157,15 @@ const VideoCarousel = () => {
                                             ...prevVideo, isPlaying: true
                                         }))
                                     }}
+                                    onEnded={()=> 
+                                        i !== 3 ? handleProccess('video-end',i)
+                                        :
+                                        handleProccess('video-last',i)
+                                     }
                                     onLoadedMetadata={(e) => handleMetaData(i, e)}
                                 >
                                     <source src={list.video} type='video/mp4' />
                                 </video>
-
-
                             </div>
                             <div className='absolute top-12 left-[5%] z-10'>
                                 {list.textLists.map((text) => (
@@ -140,15 +183,17 @@ const VideoCarousel = () => {
                 relative cursor-pointer
                 '>
                     {videoRef.current.map((_, i) => (
-                        <span key={i}
+                        <span
+                            key={i}
+                            className='mx-2 bg-gray-600 w-3 h-3 rounded-full overflow-hidden'
                             ref={(el) => (videoDivRef.current[i] = el)}
-                            className='mx-2 w-3 h-3 bg-gray-100 rounded-full'
                         >
-                            <span className='absolute h-full w-full 
-                            rounded-full 
-                            '
-                                ref={(el) => (videoRefSpanRef.current[i] = el)}
-                            ></span>
+                            <span
+                                className='w-0 h-full bg-white rounded-full block'
+                                ref={(el)=>(videoRefSpanRef.current[i] = el)}
+                            >
+
+                            </span>
 
                         </span>
                     ))}
@@ -163,11 +208,9 @@ const VideoCarousel = () => {
                                 () => handleProccess('pause')
                         }
                     />
-
                 </button>
             </div>
         </>
     )
 }
-
 export default VideoCarousel
