@@ -28,10 +28,10 @@ const VideoCarousel = () => {
 
     useGSAP(() => {
 
-        gsap.to('#slider',{
+        gsap.to('#slider', {
             transform: `translateX(${-100 * videoid}%)`,
-            duration:2,
-            ease:'power2.inOut'
+            duration: 2,
+            ease: 'power2.inOut'
         })
 
         gsap.to('#video', {
@@ -69,7 +69,7 @@ const VideoCarousel = () => {
         let span = videoDivRef.current[videoid];
 
         if (span) {
-            
+
             console.log(span)
             let currentProgress = 0;
             const progresBar = videoRefSpanRef.current[videoid]
@@ -93,17 +93,17 @@ const VideoCarousel = () => {
                             ease: 'power1.inOut',
                         })
 
-                        gsap.to(videoRefSpanRef.current[videoid],{
+                        gsap.to(videoRefSpanRef.current[videoid], {
                             width: `${currentProgress}%`,
-                            backgroundColor:'white',
-                            duration:5
+                            backgroundColor: 'white',
+                            duration:2.4
                         })
 
-                        
+
 
                     }
                 },
-                
+
             })
         }
 
@@ -113,14 +113,44 @@ const VideoCarousel = () => {
     const handleProccess = (type, i) => {
         switch (type) {
             case 'video-end':
+                if (videoRefSpanRef.current[i]) {
+                    gsap.killTweensOf(videoRefSpanRef.current[i]);
+                    gsap.set(videoRefSpanRef.current[i], {
+                        backgroundColor: 'gray'
+
+
+                    })
+                }
+
+                gsap.to(videoDivRef.current[i], {
+                    width: 12,
+                })
+
+
                 setVideo((pre) => ({ ...pre, isEnd: true, videoid: i + 1 }))
                 break;
 
             case 'video-last':
+                gsap.to(videoDivRef.current[i], {
+                    width: 12,
+                })
+
+                gsap.to(videoRefSpanRef.current[i], {
+                    backgroundColor: 'gray'
+                })
                 setVideo((pre) => ({ ...pre, isLastVideo: true }))
                 break;
 
             case 'video-reset':
+                videoRefSpanRef.current.forEach((span) => {
+                    if (span) {
+                        gsap.to(span, {
+                            width: '0%',
+                            backgroundColor: 'gray',
+                            duration: 0.3
+                        })
+                    }
+                })
                 setVideo((pre) => ({
                     ...pre, isLastVideo: false,
                     videoid: 0
@@ -144,8 +174,8 @@ const VideoCarousel = () => {
             <div className='flex items-center'>
                 {hightlightsSlides.map((list, i) => (
                     <div key={i} id='slider' className='sm:pr-20 pr-10'>
-                        <div className='video-carousel_container'>
-                            <div className='w-full h-full flex-center rounded-3xl overflow-hidden bg-black'>
+                        <div className='video-carousel_container '>
+                            <div className='w-full h-full rounded-3xl overflow-hidden bg-black items-center'>
                                 <video id='video'
 
                                     playsInline={true}
@@ -157,11 +187,11 @@ const VideoCarousel = () => {
                                             ...prevVideo, isPlaying: true
                                         }))
                                     }}
-                                    onEnded={()=> 
-                                        i !== 3 ? handleProccess('video-end',i)
-                                        :
-                                        handleProccess('video-last',i)
-                                     }
+                                    onEnded={() =>
+                                        i !== 3 ? handleProccess('video-end', i)
+                                            :
+                                            handleProccess('video-last', i)
+                                    }
                                     onLoadedMetadata={(e) => handleMetaData(i, e)}
                                 >
                                     <source src={list.video} type='video/mp4' />
@@ -189,8 +219,8 @@ const VideoCarousel = () => {
                             ref={(el) => (videoDivRef.current[i] = el)}
                         >
                             <span
-                                className='w-0 h-full bg-white rounded-full block'
-                                ref={(el)=>(videoRefSpanRef.current[i] = el)}
+                                className='w-0 h-full  rounded-full block'
+                                ref={(el) => (videoRefSpanRef.current[i] = el)}
                             >
 
                             </span>
